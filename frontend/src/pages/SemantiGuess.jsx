@@ -72,8 +72,14 @@ export default function SemantiGuess() {
       setHistory(prev => {
         const isDuplicate = prev.some(item => item.guess === data.guess || item.guess === `💡 ${data.guess}`);
         if (isDuplicate) return prev; 
-        data.guess = `💡 ${data.guess}`;
-        return [...prev, data].sort((a, b) => a.rank - b.rank);
+        
+        // FIX: Create a completely new object for the hint so Strict Mode doesn't double-mutate it
+        const newHintItem = {
+          ...data,
+          guess: `💡 ${data.guess}`
+        };
+        
+        return [...prev, newHintItem].sort((a, b) => a.rank - b.rank);
       });
     } catch (err) {
       setError("Failed to get hint.");

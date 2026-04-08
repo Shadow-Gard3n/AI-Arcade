@@ -4,14 +4,20 @@ from gensim.models import KeyedVectors
 import gensim.downloader as api
 import nltk
 from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords # <--- NEW: Import stop words
 
+# Download the dictionary rules and stop words for NLTK
 nltk.download('wordnet', quiet=True) 
 nltk.download('omw-1.4', quiet=True)
+nltk.download('stopwords', quiet=True) # <--- NEW: Download the stop words list
 
 class SemanticService:
     def __init__(self):
         print("Initializing Semantic Service...")
         self.lemmatizer = WordNetLemmatizer()
+        
+        # Load the official English stop words (the, a, and, in, on, etc.)
+        self.stop_words = set(stopwords.words('english')) 
         
         model_path = "glove_dev_20k.kv"
         if os.path.exists(model_path):
@@ -31,7 +37,7 @@ class SemanticService:
         self.active_games = {} 
         self.precomputed_data = {} 
         
-        print("Pre-computing clean ranks. Filtering out plurals and symbols...")
+        print("Pre-computing clean ranks. Filtering plurals, symbols, and stop words...")
         for word in self.target_words:
             ranks, sims, rank_to_word = self._calculate_all_ranks(word)
             self.precomputed_data[word] = {
@@ -42,19 +48,17 @@ class SemanticService:
         print("Ready!")
 
     def _calculate_all_ranks(self, target_word):
-        # 1. Get raw similarities, skipping junk like numbers and punctuation
         raw_sims = []
         for word in self.vocab:
-            if not word.isalpha(): 
-                continue # Bye bye quotation marks and numbers!
+            # 🧹 THE MASTER FILTER: Skip non-alphabet words AND Stop Words!
+            if not word.isalpha() or word.lower() in self.stop_words: 
+                continue 
                 
             sim = 1.0 if word == target_word else float(self.model.similarity(target_word, word))
             raw_sims.append((word, sim))
         
-        # 2. Sort them highest to lowest
         raw_sims.sort(key=lambda x: x[1], reverse=True)
         
-        # 3. Build the CLEAN dictionary, keeping only unique root words
         ranks = {}
         similarities = {}
         rank_to_word = {}
@@ -62,12 +66,10 @@ class SemanticService:
         current_rank = 1
         
         for word, sim in raw_sims:
-            # Find the root word
             lemma = self.lemmatizer.lemmatize(word, pos='n')
             if lemma == word:
                 lemma = self.lemmatizer.lemmatize(word, pos='v')
             
-            # If we haven't seen this root word yet, add it to our official game ranks!
             if lemma not in seen_lemmas:
                 seen_lemmas.add(lemma)
                 ranks[lemma] = current_rank
@@ -89,7 +91,6 @@ class SemanticService:
             
         target_word = self.active_games[session_id]
         
-        # Lemmatize the user's guess so it matches our clean dictionary
         raw_guess = guess.lower().strip()
         lemma = self.lemmatizer.lemmatize(raw_guess, pos='n')
         if lemma == raw_guess: 
@@ -98,6 +99,7 @@ class SemanticService:
         ranks_dict = self.precomputed_data[target_word]["ranks"]
         sims_dict = self.precomputed_data[target_word]["sims"]
         
+        # If they type a stop word or gibberish, it will nicely bounce back
         if lemma not in ranks_dict:
             return None, None, None, "Word not found in dictionary."
         
@@ -115,10 +117,8 @@ class SemanticService:
         if best_rank == -1 or best_rank > 1000:
             hint_rank = random.randint(300, 800)
         else:
-            # Safely halve the rank
             hint_rank = max(2, best_rank // 2)
             
-        # Because our dictionary is now 100% clean, we can just grab the exact rank safely!
         hint_word = self.precomputed_data[target_word]["rank_to_word"].get(hint_rank)
         return self.process_guess(session_id, hint_word)
 
@@ -135,7 +135,6 @@ class SemanticService:
         data = self.precomputed_data[target_word]
         
         top_words = []
-        # Because the dictionary is totally clean, we just loop 1 to 50! No complex logic needed.
         for rank in range(1, limit + 1):
             word = data["rank_to_word"].get(rank)
             sim = data["sims"].get(word, 0.0)
