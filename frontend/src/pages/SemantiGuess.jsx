@@ -21,7 +21,7 @@ export default function SemantiGuess() {
   const [topWords, setTopWords] = useState([]);
   const [showingTop, setShowingTop] = useState(false);
 
-  const API_URL = 'http://127.0.0.1:8000/api';
+  const API_URL = 'https://aryangahlot-ai-arcade.hf.space/api/contexto';
 
   const handleGuess = async (e, forceWord = null) => {
     if (e) e.preventDefault();
