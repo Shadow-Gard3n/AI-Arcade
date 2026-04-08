@@ -1,0 +1,26 @@
+/* src/index.css */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #05050a; /* Deep dark background */
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Optional: Make the scrollbar look cool and dark */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #05050a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e3a8a;
+  border-radius: 4px;
+}

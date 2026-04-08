@@ -1,0 +1,67 @@
+# =========================
+# OS & General
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Python / FastAPI (Backend)
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# FastAPI / Python build
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Node / React (Frontend)
+# =========================
+node_modules/
+dist/
+build/
+
+# React specific
+.next/
+out/
+coverage/
+
+# =========================
+# IDEs / Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Misc
+# =========================
+*.bak
+*.tmp
